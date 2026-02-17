@@ -17,6 +17,7 @@ export interface GenerateRequestParameters {
 }
 
 export interface GenerateImageRequestEnvelope {
+  input: string;
   model: string;
   action: NovelAiGenerateAction;
   parameters: GenerateRequestParameters & Record<string, unknown>;

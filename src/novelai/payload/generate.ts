@@ -49,6 +49,7 @@ export function buildGeneratePayload(
   input: BuildGeneratePayloadInput,
 ): GenerateImageRequestEnvelope {
   return {
+    input: input.prompt,
     model: input.model,
     action: "generate",
     parameters: buildBaseParameters(input),
@@ -59,6 +60,7 @@ export function buildImg2ImgPayload(
   input: BuildImg2ImgPayloadInput,
 ): GenerateImageRequestEnvelope {
   return {
+    input: input.prompt,
     model: input.model,
     action: "img2img",
     parameters: {
@@ -74,6 +76,7 @@ export function buildInpaintPayload(
   input: BuildInpaintPayloadInput,
 ): GenerateImageRequestEnvelope {
   return {
+    input: input.prompt,
     model: input.model,
     action: "infill",
     parameters: {

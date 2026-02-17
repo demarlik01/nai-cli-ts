@@ -17,6 +17,7 @@ describe("buildGeneratePayload", () => {
     });
 
     expect(payload).toEqual({
+      input: "1girl, cinematic lighting",
       model: "nai-diffusion-4-5-curated",
       action: "generate",
       parameters: {

@@ -1,6 +1,9 @@
 import { ApiError, NetworkError } from "../core/errors.js";
 import type { ApiErrorPayload } from "../types/api.js";
-import { NOVELAI_BASE_URL } from "./endpoints.js";
+import { IMAGE_BASE_URL, NOVELAI_BASE_URL } from "./endpoints.js";
+
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 export interface NovelAiClientOptions {
   token: string;
@@ -179,9 +182,14 @@ export function createNovelAiClient(options: NovelAiClientOptions): NovelAiClien
       }
 
       try {
+        const resolvedBase = requestBaseUrl ?? baseUrl;
+        const isImageHost = resolvedBase.includes("image.novelai.net");
         const headers: Record<string, string> = {
           Authorization: `Bearer ${options.token}`,
-          Accept: "*/*",
+          Accept: isImageHost ? "binary/octet-stream" : "application/x-zip-compressed",
+          Origin: "https://novelai.net",
+          Referer: "https://novelai.net",
+          "User-Agent": BROWSER_USER_AGENT,
         };
         const requestInit: RequestInit = {
           method,
