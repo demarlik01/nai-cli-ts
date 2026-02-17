@@ -30,6 +30,14 @@ describe("buildGeneratePayload", () => {
         sampler: "k_euler_ancestral",
         seed: 12345,
         n_samples: 1,
+        v4_prompt: {
+          caption: { base_caption: "1girl, cinematic lighting", char_captions: [] },
+          use_coords: false,
+          use_order: true,
+        },
+        v4_negative_prompt: {
+          caption: { base_caption: "lowres, blurry", char_captions: [] },
+        },
       },
     });
   });
@@ -47,5 +55,8 @@ describe("buildGeneratePayload", () => {
     });
 
     expect(payload.parameters).not.toHaveProperty("negative_prompt");
+    // V4 model should still have v4_prompt
+    expect(payload.parameters.v4_prompt).toBeDefined();
+    expect(payload.parameters.v4_negative_prompt?.caption.base_caption).toBe("");
   });
 });

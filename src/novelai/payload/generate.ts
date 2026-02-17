@@ -1,5 +1,6 @@
 import type { GenerateImageRequestEnvelope } from "../../types/api.js";
 import type { ModelId, SamplerId } from "../models.js";
+import { isV4Model } from "../models.js";
 
 export interface BuildGeneratePayloadInput {
   model: ModelId;
@@ -40,6 +41,23 @@ function buildBaseParameters(input: BuildGeneratePayloadInput): GenerateImageReq
 
   if (input.negativePrompt?.trim()) {
     parameters.negative_prompt = input.negativePrompt;
+  }
+
+  if (isV4Model(input.model)) {
+    parameters.v4_prompt = {
+      caption: {
+        base_caption: input.prompt,
+        char_captions: [],
+      },
+      use_coords: false,
+      use_order: true,
+    };
+    parameters.v4_negative_prompt = {
+      caption: {
+        base_caption: input.negativePrompt?.trim() ?? "",
+        char_captions: [],
+      },
+    };
   }
 
   return parameters;

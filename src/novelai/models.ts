@@ -77,3 +77,7 @@ export function isSamplerId(value: string): value is SamplerId {
 export function getGenerationConstraints(model: ModelId): GenerationConstraints {
   return MODEL_CONSTRAINTS[model];
 }
+
+export function isV4Model(model: string): boolean {
+  return model.startsWith("nai-diffusion-4");
+}

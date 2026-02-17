@@ -1,5 +1,25 @@
 export type NovelAiGenerateAction = "generate" | "img2img" | "infill";
 
+export interface V4CharCaption {
+  char_caption: string;
+  centers: Array<{ x: number; y: number }>;
+}
+
+export interface V4Caption {
+  base_caption: string;
+  char_captions: V4CharCaption[];
+}
+
+export interface V4Prompt {
+  caption: V4Caption;
+  use_coords: boolean;
+  use_order: boolean;
+}
+
+export interface V4NegativePrompt {
+  caption: V4Caption;
+}
+
 export interface GenerateRequestParameters {
   prompt: string;
   negative_prompt?: string;
@@ -14,6 +34,8 @@ export interface GenerateRequestParameters {
   mask?: string;
   strength?: number;
   noise?: number;
+  v4_prompt?: V4Prompt;
+  v4_negative_prompt?: V4NegativePrompt;
 }
 
 export interface GenerateImageRequestEnvelope {
