@@ -1,0 +1,26 @@
+{
+  "name": "nai-cli",
+  "version": "0.1.0",
+  "description": "NovelAI image generation CLI",
+  "type": "module",
+  "bin": {
+    "nai": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "start": "node dist/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.4"
+  }
+}
