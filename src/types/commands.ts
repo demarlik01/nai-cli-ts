@@ -17,3 +17,47 @@ export interface GenerateCommandOptions {
   seed?: number;
   out?: string;
 }
+
+export interface Img2ImgCommandOptions {
+  image: string;
+  prompt: string;
+  strength: number;
+  noise: number;
+  negative?: string;
+  model?: ModelId;
+  sampler?: SamplerId;
+  width?: number;
+  height?: number;
+  steps?: number;
+  scale?: number;
+  seed?: number;
+  out?: string;
+}
+
+export interface InpaintCommandOptions {
+  image: string;
+  mask: string;
+  prompt: string;
+  strength: number;
+  negative?: string;
+  model?: ModelId;
+  sampler?: SamplerId;
+  width?: number;
+  height?: number;
+  steps?: number;
+  scale?: number;
+  seed?: number;
+  out?: string;
+}
+
+export interface UpscaleCommandOptions {
+  image: string;
+  scale?: number;
+  out?: string;
+}
+
+export interface SuggestTagsCommandOptions {
+  prompt: string;
+  model?: ModelId;
+  format?: "json" | "table";
+}

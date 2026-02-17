@@ -14,9 +14,19 @@ export interface BuildGeneratePayloadInput {
   nSamples?: number | undefined;
 }
 
-export function buildGeneratePayload(
-  input: BuildGeneratePayloadInput,
-): GenerateImageRequestEnvelope {
+export interface BuildImg2ImgPayloadInput extends BuildGeneratePayloadInput {
+  image: string;
+  strength: number;
+  noise: number;
+}
+
+export interface BuildInpaintPayloadInput extends BuildGeneratePayloadInput {
+  image: string;
+  mask: string;
+  strength: number;
+}
+
+function buildBaseParameters(input: BuildGeneratePayloadInput): GenerateImageRequestEnvelope["parameters"] {
   const parameters: GenerateImageRequestEnvelope["parameters"] = {
     prompt: input.prompt,
     width: input.width,
@@ -32,9 +42,45 @@ export function buildGeneratePayload(
     parameters.negative_prompt = input.negativePrompt;
   }
 
+  return parameters;
+}
+
+export function buildGeneratePayload(
+  input: BuildGeneratePayloadInput,
+): GenerateImageRequestEnvelope {
   return {
     model: input.model,
     action: "generate",
-    parameters,
+    parameters: buildBaseParameters(input),
+  };
+}
+
+export function buildImg2ImgPayload(
+  input: BuildImg2ImgPayloadInput,
+): GenerateImageRequestEnvelope {
+  return {
+    model: input.model,
+    action: "img2img",
+    parameters: {
+      ...buildBaseParameters(input),
+      image: input.image,
+      strength: input.strength,
+      noise: input.noise,
+    },
+  };
+}
+
+export function buildInpaintPayload(
+  input: BuildInpaintPayloadInput,
+): GenerateImageRequestEnvelope {
+  return {
+    model: input.model,
+    action: "infill",
+    parameters: {
+      ...buildBaseParameters(input),
+      image: input.image,
+      mask: input.mask,
+      strength: input.strength,
+    },
   };
 }

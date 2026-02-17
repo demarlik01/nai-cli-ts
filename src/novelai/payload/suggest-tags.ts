@@ -1,8 +1,15 @@
+import type { SuggestTagsRequestPayload } from "../../types/api.js";
+
 export interface BuildSuggestTagsPayloadInput {
   model: string;
   prompt: string;
 }
 
-export function buildSuggestTagsPayload(_input: BuildSuggestTagsPayloadInput): never {
-  throw new Error("buildSuggestTagsPayload is planned for Phase 2.");
+export function buildSuggestTagsPayload(
+  input: BuildSuggestTagsPayloadInput,
+): SuggestTagsRequestPayload {
+  return {
+    model: input.model,
+    prompt: input.prompt,
+  };
 }

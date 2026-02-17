@@ -5,6 +5,10 @@ import { fileURLToPath } from "node:url";
 
 import { registerConfigCommand } from "./commands/config.js";
 import { registerGenerateCommand } from "./commands/generate.js";
+import { registerImg2ImgCommand } from "./commands/img2img.js";
+import { registerInpaintCommand } from "./commands/inpaint.js";
+import { registerSuggestTagsCommand } from "./commands/suggest-tags.js";
+import { registerUpscaleCommand } from "./commands/upscale.js";
 import { toCliError } from "./core/errors.js";
 
 export function buildProgram(): Command {
@@ -19,6 +23,10 @@ export function buildProgram(): Command {
     .exitOverride();
 
   registerGenerateCommand(program);
+  registerImg2ImgCommand(program);
+  registerInpaintCommand(program);
+  registerUpscaleCommand(program);
+  registerSuggestTagsCommand(program);
   registerConfigCommand(program);
 
   return program;

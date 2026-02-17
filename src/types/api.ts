@@ -10,12 +10,28 @@ export interface GenerateRequestParameters {
   sampler: string;
   seed: number;
   n_samples: number;
+  image?: string;
+  mask?: string;
+  strength?: number;
+  noise?: number;
 }
 
 export interface GenerateImageRequestEnvelope {
   model: string;
   action: NovelAiGenerateAction;
   parameters: GenerateRequestParameters & Record<string, unknown>;
+}
+
+export interface UpscaleRequestPayload {
+  image: string;
+  width: number;
+  height: number;
+  scale: number;
+}
+
+export interface SuggestTagsRequestPayload {
+  model: string;
+  prompt: string;
 }
 
 export interface ApiErrorPayload {
