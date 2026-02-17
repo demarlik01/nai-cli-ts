@@ -17,7 +17,18 @@ export interface PostJsonOptions {
 }
 
 export interface NovelAiClient {
-  postJson(endpoint: string, body: unknown, options?: PostJsonOptions): Promise<Response>;
+  postJson(
+    endpoint: string,
+    body: unknown,
+    options?: PostJsonOptions,
+    baseUrl?: string,
+  ): Promise<Response>;
+  getJson(
+    endpoint: string,
+    params?: Record<string, string>,
+    options?: PostJsonOptions,
+    baseUrl?: string,
+  ): Promise<Response>;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -125,12 +136,29 @@ export function createNovelAiClient(options: NovelAiClientOptions): NovelAiClien
     }
   });
 
-  async function postJson(
+  function buildUrl(
     endpoint: string,
-    body: unknown,
+    params?: Record<string, string>,
+    requestBaseUrl?: string,
+  ): string {
+    const url = new URL(endpoint, requestBaseUrl ?? baseUrl);
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        url.searchParams.set(key, value);
+      }
+    }
+    return url.toString();
+  }
+
+  async function requestJson(
+    method: "GET" | "POST",
+    endpoint: string,
     requestOptions: PostJsonOptions = {},
+    requestBaseUrl?: string,
+    body?: unknown,
+    params?: Record<string, string>,
   ): Promise<Response> {
-    const url = new URL(endpoint, baseUrl).toString();
+    const url = buildUrl(endpoint, params, requestBaseUrl);
 
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
       const controller = new AbortController();
@@ -151,16 +179,22 @@ export function createNovelAiClient(options: NovelAiClientOptions): NovelAiClien
       }
 
       try {
-        const response = await fetchImpl(url, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${options.token}`,
-            "Content-Type": "application/json",
-            Accept: "*/*",
-          },
-          body: JSON.stringify(body),
+        const headers: Record<string, string> = {
+          Authorization: `Bearer ${options.token}`,
+          Accept: "*/*",
+        };
+        const requestInit: RequestInit = {
+          method,
+          headers,
           signal: controller.signal,
-        });
+        };
+
+        if (method === "POST") {
+          headers["Content-Type"] = "application/json";
+          requestInit.body = JSON.stringify(body);
+        }
+
+        const response = await fetchImpl(url, requestInit);
 
         if (response.ok) {
           return response;
@@ -169,7 +203,7 @@ export function createNovelAiClient(options: NovelAiClientOptions): NovelAiClien
         if (isRetryableStatus(response.status) && attempt < maxRetries) {
           const delayMs = backoffMs(attempt, response);
           debugLog(
-            `Retrying ${endpoint} after status ${response.status} (attempt ${attempt + 1}/${maxRetries}) in ${delayMs}ms.`,
+            `Retrying ${method} ${endpoint} after status ${response.status} (attempt ${attempt + 1}/${maxRetries}) in ${delayMs}ms.`,
           );
           await sleep(delayMs);
           continue;
@@ -193,7 +227,7 @@ export function createNovelAiClient(options: NovelAiClientOptions): NovelAiClien
         if (attempt < maxRetries) {
           const delayMs = backoffMs(attempt);
           debugLog(
-            `Retrying ${endpoint} after network error (attempt ${attempt + 1}/${maxRetries}) in ${delayMs}ms.`,
+            `Retrying ${method} ${endpoint} after network error (attempt ${attempt + 1}/${maxRetries}) in ${delayMs}ms.`,
           );
           await sleep(delayMs);
           continue;
@@ -211,7 +245,26 @@ export function createNovelAiClient(options: NovelAiClientOptions): NovelAiClien
     throw new NetworkError(`Request to '${endpoint}' exhausted retries.`);
   }
 
+  async function postJson(
+    endpoint: string,
+    body: unknown,
+    requestOptions: PostJsonOptions = {},
+    requestBaseUrl?: string,
+  ): Promise<Response> {
+    return requestJson("POST", endpoint, requestOptions, requestBaseUrl, body);
+  }
+
+  async function getJson(
+    endpoint: string,
+    params?: Record<string, string>,
+    requestOptions: PostJsonOptions = {},
+    requestBaseUrl?: string,
+  ): Promise<Response> {
+    return requestJson("GET", endpoint, requestOptions, requestBaseUrl, undefined, params);
+  }
+
   return {
     postJson,
+    getJson,
   };
 }

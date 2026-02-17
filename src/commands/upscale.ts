@@ -107,7 +107,12 @@ export function registerUpscaleCommand(program: Command): void {
         onDebug: (message) => context.logger.debug(message),
       });
 
-      const response = await client.postJson(ENDPOINTS.upscale, payload);
+      const response = await client.postJson(
+        ENDPOINTS.upscale.path,
+        payload,
+        undefined,
+        ENDPOINTS.upscale.host,
+      );
       const parsed = await parseNovelAiResponse(response);
 
       if (parsed.kind === "json") {

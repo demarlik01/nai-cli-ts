@@ -1,14 +1,25 @@
 # NovelAI Image API Analysis
 
-Date: 2026-02-17
+Date: 2026-02-17 (updated 2026-02-18)
 Scope: NovelAI image-generation API surface needed for `nai-cli`
+
+## API Host Architecture
+
+NovelAI는 API를 분리하는 과정에 있다:
+
+- **`api.novelai.net`** — Primary/Legacy API. 로그인, 구독, 스토리 저장 + 레거시 생성 엔드포인트
+- **`image.novelai.net`** — 신규 Image Generation API. 이미지 생성 전용으로 분리
+- **`text.novelai.net`** — 신규 Text Generation API. 텍스트 생성 전용으로 분리
+
+일부 이미지 엔드포인트는 아직 `api.novelai.net`에만 존재하고 `image.novelai.net`으로 이전되지 않았다.
+`nai-cli`는 두 호스트를 모두 지원해야 한다.
 
 ## Sources and Confidence
 
-Because `https://image.novelai.net/docs/index.html#/` is Swagger UI (JS-rendered), this analysis combines:
+This analysis combines:
 
+- **Official Swagger specs** — `image.novelai.net/docs/doc.json` (OpenAPI 2.0, 61KB) 및 `api.novelai.net/docs/` Swagger UI 직접 확인
 - Official user docs (`docs.novelai.net`) for features and parameter behavior.
-- Swagger-adjacent mirror docs for endpoint and schema-level details.
 - Active community SDK/source code for payload and response handling.
 
 Confidence labels used below:
@@ -40,15 +51,28 @@ Confidence labels used below:
 
 The following endpoints were found across mirror docs and active SDKs.
 
+### image.novelai.net (신규 Image API)
+
 | Method | Path | Purpose | Confidence |
 |---|---|---|---|
-| POST | `/ai/generate-image` | Text-to-image, img2img, inpaint/infill, and related generation actions | `Mirror` + `Community` |
-| POST | `/ai/generate-image/suggest-tags` | Prompt/tag suggestion from text seed | `Mirror` + `Community` |
-| POST | `/ai/upscale` | Upscale an existing image | `Mirror` + `Community` |
-| POST | `/ai/augment-image` | Image augmentation pipelines (emotion/line-art/debackground style operations depending on `req_type`) | `Community` |
-| POST | `/ai/annotate-image` | Image annotation/caption/tags | `Community` |
-| POST | `/ai/classify-image` or `/ai/classify` | Image classification endpoint name differs by source | `Mirror` + `Community` |
-| POST | `/ai/generate-prompt` | Prompt generation helper | `Community` |
+| POST | `/ai/generate-image` | Text-to-image, img2img, inpaint/infill, and related generation actions | `Official Swagger` |
+| POST | `/ai/generate-image-stream` | Streaming image generation (msgpack) | `Official Swagger` |
+| GET | `/ai/generate-image/suggest-tags` | Tag suggestion from text seed | `Official Swagger` |
+| POST | `/ai/augment-image` | Image augmentation (Director Tools: emotion/line-art/debackground) | `Official Swagger` |
+| POST | `/ai/encode-vibe` | Encode vibes for vibe transfer | `Official Swagger` |
+
+### api.novelai.net (Primary/Legacy — 아직 image.novelai.net으로 미이전)
+
+| Method | Path | Purpose | Confidence |
+|---|---|---|---|
+| POST | `/ai/generate-image` | Image generation (레거시, 위와 동일) | `Official Swagger` |
+| POST | `/ai/upscale` | Upscale an existing image | `Official Swagger` |
+| POST | `/ai/classify` | Image classification | `Official Swagger` |
+| POST | `/ai/annotate-image` | Image annotation/caption/tags | `Official Swagger` |
+| GET | `/ai/generate-image/suggest-tags` | Tag suggestion (레거시) | `Official Swagger` |
+| POST | `/ai/generate-prompt` | Prompt generation helper | `Official Swagger` |
+
+**Note:** `upscale`, `classify`, `annotate-image`는 현재 `api.novelai.net`에만 존재. nai-cli는 이 엔드포인트들에 대해 `api.novelai.net`을 호스트로 사용해야 한다.
 
 ### 2.1 `POST /ai/generate-image`
 

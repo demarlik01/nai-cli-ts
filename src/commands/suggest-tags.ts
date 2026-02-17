@@ -4,7 +4,6 @@ import { createRuntimeContext } from "../core/context.js";
 import { ConfigError, ValidationError } from "../core/errors.js";
 import { createNovelAiClient } from "../novelai/client.js";
 import { ENDPOINTS } from "../novelai/endpoints.js";
-import { buildSuggestTagsPayload } from "../novelai/payload/suggest-tags.js";
 import { parseNovelAiResponse } from "../novelai/response.js";
 import type { GlobalCliOptions, SuggestTagsCommandOptions } from "../types/commands.js";
 
@@ -26,6 +25,13 @@ function parseFormatOption(value: string): "json" | "table" {
     return value;
   }
   throw new ValidationError("format must be either 'json' or 'table'.");
+}
+
+function parseLangOption(value: string): "en" | "jp" {
+  if (value === "en" || value === "jp") {
+    return value;
+  }
+  throw new ValidationError("lang must be either 'en' or 'jp'.");
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -111,6 +117,7 @@ export function registerSuggestTagsCommand(program: Command): void {
     .description("Suggest prompt tags for a model")
     .requiredOption("--prompt <text>", "Prompt text")
     .option("--model <id>", "Model ID from registry")
+    .option("--lang <code>", "Tag language (en|jp)", parseLangOption)
     .option("--format <type>", "Output format (json|table)", parseFormatOption)
     .action(async (options: SuggestTagsCommandOptions, command: Command) => {
       const globals = resolveGlobalOptions(command);
@@ -125,10 +132,13 @@ export function registerSuggestTagsCommand(program: Command): void {
         );
       }
 
-      const payload = buildSuggestTagsPayload({
+      const params: Record<string, string> = {
         model: options.model ?? context.config.defaultModel,
         prompt: options.prompt,
-      });
+      };
+      if (options.lang) {
+        params["lang"] = options.lang;
+      }
 
       const client = createNovelAiClient({
         token: context.config.apiToken,
@@ -138,7 +148,12 @@ export function registerSuggestTagsCommand(program: Command): void {
         onDebug: (message) => context.logger.debug(message),
       });
 
-      const response = await client.postJson(ENDPOINTS.suggestTags, payload);
+      const response = await client.getJson(
+        ENDPOINTS.suggestTags.path,
+        params,
+        undefined,
+        ENDPOINTS.suggestTags.host,
+      );
       const parsed = await parseNovelAiResponse(response);
 
       if (parsed.kind !== "json") {

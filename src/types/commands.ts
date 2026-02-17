@@ -59,5 +59,6 @@ export interface UpscaleCommandOptions {
 export interface SuggestTagsCommandOptions {
   prompt: string;
   model?: ModelId;
+  lang?: "en" | "jp";
   format?: "json" | "table";
 }

@@ -99,7 +99,12 @@ export function registerGenerateCommand(program: Command): void {
         onDebug: (message) => context.logger.debug(message),
       });
 
-      const response = await client.postJson(ENDPOINTS.generateImage, payload);
+      const response = await client.postJson(
+        ENDPOINTS.generateImage.path,
+        payload,
+        undefined,
+        ENDPOINTS.generateImage.host,
+      );
       const parsed = await parseNovelAiResponse(response);
 
       if (parsed.kind === "json") {
