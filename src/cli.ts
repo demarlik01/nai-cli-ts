@@ -7,6 +7,7 @@ import { registerConfigCommand } from "./commands/config.js";
 import { registerGenerateCommand } from "./commands/generate.js";
 import { registerImg2ImgCommand } from "./commands/img2img.js";
 import { registerInpaintCommand } from "./commands/inpaint.js";
+import { registerPresetCommand } from "./commands/preset.js";
 import { registerSuggestTagsCommand } from "./commands/suggest-tags.js";
 import { registerUpscaleCommand } from "./commands/upscale.js";
 import { toCliError } from "./core/errors.js";
@@ -27,6 +28,7 @@ export function buildProgram(): Command {
   registerInpaintCommand(program);
   registerUpscaleCommand(program);
   registerSuggestTagsCommand(program);
+  registerPresetCommand(program);
   registerConfigCommand(program);
 
   return program;

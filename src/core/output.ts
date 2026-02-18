@@ -3,6 +3,7 @@ import path from "node:path";
 import { constants as fsConstants } from "node:fs";
 
 import { IoError, ValidationError } from "./errors.js";
+import { renderTemplate } from "./template.js";
 import type { NormalizedNovelAiResponse } from "../types/api.js";
 
 export interface WriteGenerationOutputOptions {
@@ -14,6 +15,9 @@ export interface WriteGenerationOutputOptions {
   requestPayload: unknown;
   response: Extract<NormalizedNovelAiResponse, { kind: "zip" | "png" }>;
   now?: (() => Date) | undefined;
+  outputTemplate?: string | undefined;
+  sampler?: string | undefined;
+  index?: number | undefined;
 }
 
 export interface OutputArtifact {
@@ -67,12 +71,12 @@ async function resolveAvailableBasePath(
   }
 }
 
-function buildMetadata(options: WriteGenerationOutputOptions, index: number): Record<string, unknown> {
+function buildMetadata(options: WriteGenerationOutputOptions, imageIndex: number): Record<string, unknown> {
   return {
     generatedAt: (options.now ?? (() => new Date()))().toISOString(),
     model: options.model,
     seed: options.seed,
-    imageIndex: index + 1,
+    imageIndex: imageIndex + 1,
     prompt: options.prompt,
     negativePrompt: options.negativePrompt ?? null,
     request: options.requestPayload,
@@ -101,8 +105,24 @@ export async function writeGenerationOutput(
     throw new ValidationError("NovelAI ZIP response did not contain any image files.");
   }
 
-  for (const [index, item] of items.entries()) {
-    const baseName = `${modelToken}-seed-${seedToken}-img-${String(index + 1).padStart(2, "0")}`;
+  for (const [imageIndex, item] of items.entries()) {
+    let baseName: string;
+    if (options.outputTemplate) {
+      const now = (options.now ?? (() => new Date()))();
+      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+      const rendered = renderTemplate(options.outputTemplate, {
+        date: dateStr,
+        model: options.model,
+        seed: seedToken,
+        index: String(options.index ?? imageIndex),
+        prompt: options.prompt,
+        sampler: options.sampler,
+      });
+      // Strip extension from template if present (we add it ourselves)
+      baseName = rendered.replace(/\.(png|jpg|jpeg|webp)$/i, "");
+    } else {
+      baseName = `${modelToken}-seed-${seedToken}-img-${String(imageIndex + 1).padStart(2, "0")}`;
+    }
     const initialBasePath = path.join(options.outputDir, baseName);
     const availableBasePath = await resolveAvailableBasePath(initialBasePath, item.extension);
     const imagePath = `${availableBasePath}${item.extension}`;
@@ -112,7 +132,7 @@ export async function writeGenerationOutput(
       await writeFile(imagePath, item.image);
       await writeFile(
         metadataPath,
-        `${JSON.stringify(buildMetadata(options, index), null, 2)}\n`,
+        `${JSON.stringify(buildMetadata(options, imageIndex), null, 2)}\n`,
         "utf8",
       );
     } catch (error) {

@@ -62,8 +62,10 @@ nai config validate
 | `defaultModel` | string | `nai-diffusion-4-5-curated` | 기본 모델 ID |
 | `defaultSampler` | string | `k_euler_ancestral` | 기본 샘플러 ID |
 | `defaultOutputDir` | string | `./outputs` | 기본 출력 디렉토리 |
+| `defaultOutputTemplate` | string | — | 기본 출력 파일명 템플릿 |
 | `requestTimeoutMs` | number | `60000` | 요청 타임아웃 (ms) |
 | `maxRetries` | number | `3` | 최대 재시도 횟수 (0–10) |
+| `manifestEnabled` | boolean | — | 개별 생성 시 manifest 로깅 활성화 |
 | `debug` | boolean | `false` | 디버그 로깅 활성화 |
 
 ## 글로벌 옵션
@@ -104,6 +106,64 @@ nai generate \
 | `--scale <number>` | | `5` | CFG 스케일 |
 | `--seed <number>` | | 랜덤 | 시드 (0–4294967295) |
 | `--out <dir>` | | 설정값 | 출력 디렉토리 |
+| `--preset <name>` | | — | 저장된 프리셋 로드 |
+| `--prompts <file>` | | — | 프롬프트 파일 (줄 단위) |
+| `--models <ids>` | | — | 쉼표 구분 모델 ID (매트릭스 배치) |
+| `--samplers <ids>` | | — | 쉼표 구분 샘플러 ID (매트릭스 배치) |
+| `--concurrency <n>` | | `1` | 동시 요청 수 |
+| `--output-template <tpl>` | | 설정값 | 출력 파일명 템플릿 |
+| `--dry-run` | | — | API 호출 없이 검증만 수행 |
+
+`--prompt` 또는 `--prompts` 중 하나는 필수.
+
+#### 배치 생성
+
+프롬프트 파일로 매트릭스 조합 일괄 생성:
+
+```bash
+# 2개 모델 × 2개 샘플러 × 프롬프트 파일의 모든 조합 생성
+nai generate \
+  --prompts prompts.txt \
+  --models nai-diffusion-4-5-curated,nai-diffusion-3 \
+  --samplers k_euler,k_dpmpp_2m \
+  --concurrency 2
+
+# 조합 미리보기 (API 호출 없음)
+nai generate --prompts prompts.txt --models a,b --dry-run
+```
+
+#### 출력 템플릿
+
+템플릿 변수로 출력 파일명 커스터마이징:
+
+```bash
+nai generate --prompt "1girl" --output-template "{date}_{model}_{seed}_{index}.png"
+```
+
+사용 가능 변수: `{date}`, `{model}`, `{seed}`, `{index}`, `{prompt}`, `{sampler}`.
+
+### `preset` — 프리셋 관리
+
+생성 옵션을 저장하고 재사용한다.
+
+```bash
+# 프리셋 저장
+nai preset save my-style --model nai-diffusion-4-5-curated --width 832 --height 1216 --steps 28
+
+# 프리셋 목록
+nai preset list
+
+# 프리셋 내용 보기
+nai preset show my-style
+
+# 프리셋 삭제
+nai preset delete my-style
+
+# 프리셋 사용 (CLI 플래그가 프리셋 값보다 우선)
+nai generate --preset my-style --prompt "1girl, blue hair"
+```
+
+프리셋은 `~/.config/nai-cli/presets/*.json`에 저장된다.
 
 ### `img2img` — 이미지-이미지 변환
 
@@ -227,10 +287,24 @@ V4/V4.5 모델은 자동으로 V4 프롬프트 구조(`v4_prompt`)를 사용한�
 
 ## 출력
 
-- 이미지: `<model>-seed-<seed>-img-<n>.png`
+- 이미지: `<model>-seed-<seed>-img-<n>.png` (또는 커스텀 템플릿)
 - 메타데이터: `<model>-seed-<seed>-img-<n>.json`
 
 기본 출력 디렉토리는 `./outputs/` (설정에서 변경 가능).
+
+### Manifest 로깅
+
+배치 실행 시 output 디렉토리에 `manifest.jsonl`이 자동 생성된다. 각 줄에 기록되는 정보:
+
+```json
+{"prompt":"...","model":"...","sampler":"...","seed":123,"filename":"out.png","success":true,"timestamp":"2026-02-18T00:00:00.000Z"}
+```
+
+개별 생성(non-batch)에서도 manifest에 기록하려면 설정에서 활성화:
+
+```json
+{ "manifestEnabled": true }
+```
 
 ## 라이선스
 

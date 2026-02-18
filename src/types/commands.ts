@@ -6,7 +6,7 @@ export interface GlobalCliOptions {
 }
 
 export interface GenerateCommandOptions {
-  prompt: string;
+  prompt?: string;
   negative?: string;
   model?: ModelId;
   sampler?: SamplerId;
@@ -16,6 +16,13 @@ export interface GenerateCommandOptions {
   scale?: number;
   seed?: number;
   out?: string;
+  preset?: string;
+  prompts?: string;
+  models?: string[];
+  samplers?: string[];
+  concurrency?: number;
+  outputTemplate?: string;
+  dryRun?: boolean;
 }
 
 export interface Img2ImgCommandOptions {

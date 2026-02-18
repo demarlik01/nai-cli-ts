@@ -15,8 +15,10 @@ export const configSchema = z.object({
   defaultModel: modelIdSchema,
   defaultSampler: samplerIdSchema,
   defaultOutputDir: z.string().min(1),
+  defaultOutputTemplate: z.string().min(1).optional(),
   requestTimeoutMs: z.number().int().positive(),
   maxRetries: z.number().int().min(0).max(10),
+  manifestEnabled: z.boolean().optional(),
   debug: z.boolean(),
 });
 

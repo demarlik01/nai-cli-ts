@@ -62,8 +62,10 @@ Location: `~/.config/nai-cli/config.json` (respects `XDG_CONFIG_HOME`)
 | `defaultModel` | string | `nai-diffusion-4-5-curated` | Default model ID |
 | `defaultSampler` | string | `k_euler_ancestral` | Default sampler ID |
 | `defaultOutputDir` | string | `./outputs` | Default output directory |
+| `defaultOutputTemplate` | string | — | Default output filename template |
 | `requestTimeoutMs` | number | `60000` | Request timeout in ms |
 | `maxRetries` | number | `3` | Max retry count (0–10) |
+| `manifestEnabled` | boolean | — | Enable manifest logging for non-batch runs |
 | `debug` | boolean | `false` | Enable debug logging |
 
 ## Global Options
@@ -104,6 +106,64 @@ nai generate \
 | `--scale <number>` | | `5` | CFG scale |
 | `--seed <number>` | | Random | Seed (0–4294967295) |
 | `--out <dir>` | | Config default | Output directory |
+| `--preset <name>` | | — | Load options from a saved preset |
+| `--prompts <file>` | | — | Prompt file (one per line) for batch |
+| `--models <ids>` | | — | Comma-separated model IDs for matrix batch |
+| `--samplers <ids>` | | — | Comma-separated sampler IDs for matrix batch |
+| `--concurrency <n>` | | `1` | Number of concurrent requests |
+| `--output-template <tpl>` | | Config default | Output filename template |
+| `--dry-run` | | — | Validate and preview without API calls |
+
+Either `--prompt` or `--prompts` is required.
+
+#### Batch Generation
+
+Generate multiple images from a prompt file with matrix combinations:
+
+```bash
+# Generate all combinations of 2 models × 2 samplers × prompts from file
+nai generate \
+  --prompts prompts.txt \
+  --models nai-diffusion-4-5-curated,nai-diffusion-3 \
+  --samplers k_euler,k_dpmpp_2m \
+  --concurrency 2
+
+# Dry run to preview jobs
+nai generate --prompts prompts.txt --models a,b --dry-run
+```
+
+#### Output Templates
+
+Customize output filenames with template variables:
+
+```bash
+nai generate --prompt "1girl" --output-template "{date}_{model}_{seed}_{index}.png"
+```
+
+Available variables: `{date}`, `{model}`, `{seed}`, `{index}`, `{prompt}`, `{sampler}`.
+
+### `preset` — Preset Management
+
+Save and reuse generation options.
+
+```bash
+# Save a preset
+nai preset save my-style --model nai-diffusion-4-5-curated --width 832 --height 1216 --steps 28
+
+# List presets
+nai preset list
+
+# Show preset contents
+nai preset show my-style
+
+# Delete a preset
+nai preset delete my-style
+
+# Use a preset (CLI flags override preset values)
+nai generate --preset my-style --prompt "1girl, blue hair"
+```
+
+Presets are stored in `~/.config/nai-cli/presets/*.json`.
 
 ### `img2img` — Image-to-Image
 
@@ -227,10 +287,24 @@ V4/V4.5 models automatically use the V4 prompt structure (`v4_prompt`).
 
 ## Output
 
-- Image: `<model>-seed-<seed>-img-<n>.png`
+- Image: `<model>-seed-<seed>-img-<n>.png` (or custom template)
 - Metadata: `<model>-seed-<seed>-img-<n>.json`
 
 Default output directory is `./outputs/` (configurable).
+
+### Manifest Logging
+
+Batch runs automatically create `manifest.jsonl` in the output directory. Each line records:
+
+```json
+{"prompt":"...","model":"...","sampler":"...","seed":123,"filename":"out.png","success":true,"timestamp":"2026-02-18T00:00:00.000Z"}
+```
+
+For non-batch single generations, enable manifest logging via config:
+
+```json
+{ "manifestEnabled": true }
+```
 
 ## License
 
