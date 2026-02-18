@@ -1,8 +1,12 @@
 # NovelAI 이미지 프롬프트 가이드
 
+*Last updated: 2026-02-18*
+
 NovelAI 이미지 생성을 위한 종합 프롬프트 가이드입니다. 사람과 AI 에이전트 모두를 위해 작성되었습니다.
 
 > **출처:** 이 가이드는 [NovelAI 공식 문서](https://docs.novelai.net/en/image/), 커뮤니티 리소스, 실험 결과를 종합한 것입니다. 공식 정보는 별도 표시 없이, 커뮤니티 팁은 💡로 표시합니다.
+
+> 💡 **핵심 철학**: 프롬프팅은 레고 블럭을 짜 맞추는 것과 같습니다. 태그를 정확히 조합해야 원하는 결과를 얻을 수 있습니다. 각 태그는 하나의 블럭이고, 조합과 배치가 최종 이미지를 결정합니다.
 
 ---
 
@@ -15,10 +19,16 @@ NovelAI 이미지 생성을 위한 종합 프롬프트 가이드입니다. 사�
 5. [강조와 약화](#강조와-약화)
 6. [네거티브 프롬프트 (Undesired Content)](#네거티브-프롬프트-undesired-content)
 7. [멀티 캐릭터 프롬프팅](#멀티-캐릭터-프롬프팅)
-8. [파라미터 가이드](#파라미터-가이드)
-9. [실전 예시](#실전-예시)
-10. [nai-cli 연동](#nai-cli-연동)
-11. [참고 자료](#참고-자료)
+8. [등급 태그](#등급-태그)
+9. [텍스트 렌더링](#텍스트-렌더링)
+10. [프롬프트 랜덤마이저](#프롬프트-랜덤마이저)
+11. [파라미터 가이드](#파라미터-가이드)
+12. [Img2Img, 인페인트 & 캔버스](#img2img-인페인트--캔버스)
+13. [후처리](#후처리)
+14. [Anlas & 비용 절약 팁](#anlas--비용-절약-팁)
+15. [실전 예시](#실전-예시)
+16. [nai-cli 연동](#nai-cli-연동)
+17. [참고 자료](#참고-자료)
 
 ---
 
@@ -46,8 +56,8 @@ NovelAI 이미지 생성을 위한 종합 프롬프트 가이드입니다. 사�
 | 자연어 이해 | 제한적 | 우수 |
 | 멀티 캐릭터 | 미지원 | 최대 6명 |
 | 텍스트 렌더링 | 미흡 | 개선됨 (영어) |
-| 수치 강조 | 없음 | `1.5::태그 ::` 문법 |
-| 음수 강조 | 없음 | V4.5만: `-1::태그 ::` |
+| 수치 강조 | 없음 | `1.5::태그::` 문법 |
+| 음수 강조 | 없음 | V4.5만: `-1::태그::` |
 | 유니코드 | 지원 | 미지원 (T5 제한) |
 
 ### Curated vs Full
@@ -55,38 +65,34 @@ NovelAI 이미지 생성을 위한 종합 프롬프트 가이드입니다. 사�
 - **Curated**: 깔끔한 데이터셋, 예측 가능한 결과, 방송용으로 안전. 니치한 개념에는 약할 수 있음.
 - **Full**: 더 넓은 데이터셋, 특수한 개념 처리 가능. 예상치 못한 결과가 나올 수 있음.
 
-### 특수 모드 (V4+)
+### 특수 데이터셋 태그 (V4+)
 
-- **퍼리 모드**: 프롬프트 앞에 `fur dataset,`을 붙여 퍼리/케모노 스타일로 전환.
-- **배경 모드** (V4.5+): `background dataset,`으로 시작하면 풍경, 정물, 동물 사진 스타일 생성.
+프롬프트 **맨 앞에** 배치하여 생성 모드를 전환합니다:
+
+- **`fur dataset,`** — 퍼리/케모노 스타일 활성화. V4.5 Full과 함께 사용 권장.
+- **`background dataset,`** (V4.5+) — 인물 없이 풍경, 정물, 동물 사진을 포토그래픽 스타일로 생성.
 
 ---
 
 ## 프롬프트 구조
 
-### 권장 순서
+### 권장 태그 순서
 
-V3 (순서가 중요):
-```
-인원수 태그, 캐릭터명, 시리즈명, 외형, 의상, 포즈, 표정, 배경, 스타일, 품질 태그
-```
+💡 **커뮤니티 권장 태그 순서**:
 
-V4/V4.5 (순서 덜 중요하지만 권장):
-```
-인원수, 장면/배경 태그, 캐릭터 상세 (캐릭터 프롬프트에), 품질/미적 태그
-```
+1. **인물 수/종류**: `1girl`, `2boys`, `1other`
+2. **캐릭터 & 시리즈**: `hatsune miku`, `genshin impact`
+3. **작가 태그**: `wlop`, `kuvshinov ilya` (화풍 제어)
+4. **품질/미학 태그**: `very aesthetic`, `masterpiece`
+5. **아트 스타일 & 매체**: `watercolor (medium)`, `year 2024`
+6. **구도 & 카메라 앵글**: `cowboy shot`, `from above`, `dutch angle`
+7. **배경 & 장소**: `outdoors`, `classroom`, `cityscape`
+8. **인물 외형**: 머리카락, 눈, 체형
+9. **의상 & 소품**: 구체적인 의류 태그
+10. **자세 & 표정**: `smile`, `arms up`, `sitting`
+11. **기타 디테일**: 소도구, 이펙트, 분위기
 
-### 좋은 프롬프트의 구성
-
-1. **인원수**: `1girl`, `2boys`, `1other`
-2. **캐릭터 정체성**: 캐릭터명, 시리즈 (Danbooru 태그 형식)
-3. **외형**: 머리카락 (색, 스타일, 길이), 눈, 체형
-4. **의상 & 소품**: 구체적인 의류 태그
-5. **포즈 & 표정**: `smile`, `arms up`, `sitting`, `looking at viewer`
-6. **프레이밍**: `portrait`, `cowboy shot`, `full body`, `from above`
-7. **배경 & 장소**: `outdoors`, `classroom`, `night sky`, `cityscape`
-8. **스타일 & 매체**: 아티스트명, `watercolor (medium)`, `year 2024`
-9. **품질 태그**: `best quality`, `very aesthetic`, `masterpiece`
+> V3에서는 순서가 매우 중요합니다 (앞쪽 = 강한 영향). V4/V4.5에서는 덜 중요하지만 일관성을 위해 권장합니다.
 
 ### 자연어 vs 태그
 
@@ -99,6 +105,10 @@ very aesthetic, masterpiece
 ```
 
 💡 **커뮤니티 팁**: 구체적인 시각 요소에는 태그가 더 정확하고 신뢰할 수 있습니다. 자연어는 장면 묘사나 관계 설명에 활용하세요.
+
+### UI 팁: 태그 추천 버블
+
+💡 NovelAI 웹 UI에서 태그 자동완성은 버블 형태로 표시됩니다. **각 버블의 투명도가 AI의 해당 태그 이해도를 나타냅니다** — 불투명할수록 AI가 잘 이해하는 태그입니다. 태그 선택 시 참고하세요.
 
 ---
 
@@ -124,11 +134,13 @@ NovelAI의 애니메이션 모델은 [Danbooru](https://danbooru.donmai.us/) 태
 | **표정** | `smile`, `blush`, `crying`, `open mouth` | |
 | **의상** | `school uniform`, `armor`, `sundress`, `hoodie` | 구체적일수록 좋음 |
 | **포즈/동작** | `sitting`, `running`, `arms behind back`, `peace sign` | |
-| **프레이밍** | `portrait`, `upper body`, `cowboy shot`, `full body` | 잘림/줌 결정 |
-| **앵글** | `from above`, `from below`, `from side`, `dutch angle` | 카메라 시점 |
+| **구도** | `close-up`, `portrait`, `upper body`, `cowboy shot`, `full body` | 잘림/줌 수준 결정 |
+| **카메라 앵글** | `from above`, `from below`, `from side`, `dutch angle`, `pov` | 카메라 시점 |
 | **배경** | `outdoors`, `classroom`, `starry sky`, `simple background` | |
-| **매체** | `watercolor (medium)`, `ink (medium)`, `3d (medium)` | 화법/기법 |
-| **등급** | `rating:general`, `rating:sensitive` | 콘텐츠 등급 제어 |
+| **장소(Location)** | `cafe`, `library`, `train station`, `rooftop` | 실내/실외를 특정하지 않고 장소를 유도 |
+| **매체** | `watercolor (medium)`, `oil painting (medium)`, `sketch`, `lineart` | 화법/기법 |
+| **오브젝트 포커스** | `weapon focus`, `food focus`, `flower focus` | 캐릭터가 아닌 특정 사물에 초점 |
+| **등급** | `rating:general`, `rating:sensitive`, `rating:questionable`, `rating:explicit` | 콘텐츠 등급 제어 |
 
 ### 캐릭터 이름
 
@@ -219,30 +231,34 @@ NovelAI는 "품질 태그 추가" 활성화 시 자동으로 태그를 추가합
 
 ### 수치 강조 (V4+ 전용)
 
-`::` 문법으로 정밀 제어:
+`가중치::태그::` 문법으로 정밀 제어:
 
 ```
-1girl, 1.5::rain, night ::, 0.5::coat ::, black shoes
+1girl, 1.5::rain, night::, 0.5::coat::, black shoes
 ```
 
-- `1.5::텍스트 ::` — 1.5배 강조
-- `0.5::텍스트 ::` — 0.5배로 약화
+- `1.5::텍스트::` — 1.5배 강조
+- `0.5::텍스트::` — 0.5배로 약화
+- 여러 태그를 묶을 수 있음: `1.5::rain, night::`
 - `::`는 열린 괄호도 닫아줌
+
+> ⚠️ **주의**: 태그가 숫자로 끝나는 경우, `::` 앞에 **공백을 추가**해야 파싱 에러를 방지할 수 있습니다:
+> `2::artist:jp06 ::` (`::`  앞 공백에 주목)
 
 ### 음수 강조 (V4.5+ 전용)
 
-음수 값으로 타깃 제거나 개념 반전:
+음수 가중치는 **정밀 핀셋** 역할을 합니다 — 네거티브 프롬프트가 넓게 개념을 회피하는 것과 달리, 음수 강조는 적극적으로 *반대 방향*으로 이미지를 유도합니다:
 
 ```
--1::hat ::           → 캐릭터의 기본 모자 제거
--1::monochrome ::    → 흑백 이미지에 색상 강제
--2.5::flat color ::  → 더 많은 디테일/음영 추가
--1::simple background ::  → 상세한 배경 강제
+-1::hat::           → 캐릭터의 기본 모자 제거
+-1::monochrome::    → 흑백 이미지에 색상 강제 (색을 되살림)
+-2::flat color::    → 더 많은 디테일/음영 추가
+-1.5::simple background::  → 복잡하고 상세한 배경 유도
 ```
 
 **음수 강조 vs Undesired Content 사용 시기:**
-- **음수 강조**: 특정 개념의 타깃 제거/반전에 효과적
-- **Undesired Content**: 일반적으로 피할 것들의 긴 목록에 적합
+- **음수 강조**: 특정 개념의 타깃 제거/반전에 효과적인 정밀 도구. 반대 방향으로 적극 유도.
+- **Undesired Content**: 일반적으로 피할 것들의 긴 목록에 적합한 넓은 필터. 반대 방향으로 적극 유도하지는 않음.
 
 ---
 
@@ -325,9 +341,13 @@ V4+ 모델에서 사용 가능. 최대 6명까지 지원.
 2girls, indoors, café | girl, blonde hair, source#hug | girl, black hair, target#hug
 ```
 
-- `source#hug` — 이 캐릭터가 안는 쪽
-- `target#hug` — 이 캐릭터가 안기는 쪽
-- `mutual#hug` — 서로 안는 관계
+- `source#동작` — 이 캐릭터가 **행동 주체** (동작을 하는 쪽)
+- `target#동작` — 이 캐릭터가 **행동 대상** (동작을 받는 쪽)
+- `mutual#동작` — 양쪽이 **함께** 동작을 수행
+
+### 위치 제어
+
+💡 NovelAI 웹 UI는 각 캐릭터의 위치를 지정할 수 있는 **5×5 그리드**를 제공합니다. UI 기능(API/CLI에서는 직접 사용 불가)이지만, 캐릭터 배치를 제어하는 데 유용합니다. 기본적으로 프롬프트 순서에 따라 왼쪽→오른쪽으로 배치됩니다.
 
 ### 예시
 
@@ -336,6 +356,64 @@ V4+ 모델에서 사용 가능. 최대 6명까지 지원.
 girl, purple eyes, short hair, smile, blonde hair, red blouse, pleated skirt, cowboy shot |
 girl, very long hair, purple hair, white jeans, green eyes, turtleneck sweater, cowboy shot
 ```
+
+---
+
+## 등급 태그
+
+Danbooru 스타일 등급 태그로 생성 이미지의 콘텐츠 등급을 제어합니다:
+
+| 태그 | 설명 |
+|------|------|
+| `rating:general` | 모든 연령 적합. 선정적 요소 없음. |
+| `rating:sensitive` | 약간 선정적이지만 노출 없음. |
+| `rating:questionable` | 선정적 콘텐츠, 부분 노출 가능. |
+| `rating:explicit` | 성인용 콘텐츠. |
+
+> **참고**: V4.5 Curated는 품질 태그 활성화 시 자동으로 `rating:general`을 추가합니다. 다른 등급을 원하면 명시적으로 지정하세요.
+
+---
+
+## 텍스트 렌더링
+
+V4/V4.5 모델은 이미지 안에 영어 텍스트를 렌더링할 수 있습니다.
+
+### 사용법
+
+1. 프롬프트에 `text` 또는 `english text` 태그를 포함
+2. 프롬프트 **맨 끝에** 원하는 텍스트를 추가: `Text: 원하는 문장`
+
+```
+1girl, holding sign, smile, english text, very aesthetic, masterpiece, Text: Hello World!
+```
+
+### 문제 해결
+
+- **짧은 텍스트가 안 나올 때:** 자동 품질 태그에 `no text`가 포함되어 텍스트 렌더링을 억제할 수 있습니다. 텍스트가 포함된 이미지를 생성할 때는 "품질 태그 추가"를 끄거나, 프리앰블에서 `no text`를 제거하세요.
+- 텍스트 렌더링은 영어가 가장 잘 됩니다. 다른 언어는 불안정합니다.
+- 짧은 텍스트(1~3 단어)가 긴 문장보다 안정적으로 렌더링됩니다.
+
+---
+
+## 프롬프트 랜덤마이저
+
+NovelAI는 프롬프트 내 인라인 랜덤 선택을 지원합니다:
+
+### 문법
+
+```
+||옵션1|옵션2|옵션3||
+```
+
+생성할 때마다 목록에서 하나를 랜덤으로 선택합니다.
+
+### 예시
+
+```
+1girl, ||blonde hair|red hair|blue hair||, ||smile|serious|blush||, school uniform, very aesthetic
+```
+
+> ⚠️ **주의**: 랜덤 선택은 Seed를 고정해도 매번 바뀝니다. 랜덤마이저는 Seed 값과 독립적으로 동작합니다.
 
 ---
 
@@ -364,6 +442,8 @@ girl, very long hair, purple hair, white jeans, green eyes, turtleneck sweater, 
 
 - **Decrisper** (토글): 높은 가이던스에서 색상/시각적 아티팩트 완화.
 - **Prompt Guidance Rescale** (V3): 높은 가이던스의 색상 과포화 완화.
+
+💡 **미세 조절 팁**: Seed를 고정한 후 Guidance를 **0.1 단위로 조절**하면 디테일을 세밀하게 조정할 수 있습니다. 작은 변화(예: 5.0 → 5.1 → 5.2)로도 구도는 유지하면서 디테일 수준이 눈에 띄게 달라집니다.
 
 ### 샘플러
 
@@ -394,7 +474,73 @@ girl, very long hair, purple hair, white jeans, green eyes, turtleneck sweater, 
 | 9:16 | 768×1344 | 1344×768 | 폰 배경화면 |
 | 3:4 | 896×1152 | 1152×896 | 표준 사진 비율 |
 
-> Opus 구독자: ≤28 스텝, 일반 해상도 범위, 단일 이미지 시 무료 생성.
+---
+
+## Img2Img, 인페인트 & 캔버스
+
+### Img2Img
+
+기존 이미지를 프롬프트로 변환합니다. 핵심 파라미터:
+
+- **Strength**: 원본을 얼마나 바꿀지 (0.0 = 변경 없음, 1.0 = 완전 재생성). 0.5~0.7 정도로 시작 권장.
+- **Noise**: 생성 전 추가되는 노이즈. 높을수록 더 많은 변화.
+
+### 인페인팅
+
+마스크로 이미지의 특정 부분만 선택적으로 재생성합니다. 손, 얼굴 수정이나 요소 추가/제거에 유용합니다.
+
+### 캔버스 & 아웃페인팅
+
+캔버스 기능으로 이미지를 원래 경계 너머로 확장할 수 있습니다:
+
+1. 캔버스에 이미지를 배치
+2. 확장할 방향으로 빈 공간을 만들기
+3. 빈 공간에 인페인트를 적용하여 원본과 어울리는 새 콘텐츠 생성
+
+### 바이브 트랜스퍼 (Vibe Transfer)
+
+참조 이미지로 새 생성의 스타일/콘텐츠에 영향을 줍니다:
+
+- **Reference Strength**: 참조 이미지의 영향력 (높을수록 더 유사)
+- **Information Extracted**: 참조에서 추출할 정보 — 낮은 값은 넓은 스타일/색감, 높은 값은 구체적 디테일과 구도까지 추출
+
+---
+
+## 후처리
+
+### Enhance (인핸스)
+
+프롬프트 기반의 디테일 향상. 기존 생성물에 프롬프트를 따라 디테일과 정밀도를 추가합니다. 품질 향상과 함께 업스케일링에도 좋습니다.
+
+### Upscale (업스케일)
+
+프롬프트 없이 4배 해상도 확대. 원본 이미지를 충실하게 고해상도로 변환합니다.
+
+### Director Tools (디렉터 도구)
+
+특수 목적의 타깃 편집 도구:
+
+- **Remove Background**: 배경 제거, 피사체 분리
+- **Colorize**: 흑백/스케치에 색 입히기
+- **Emotion**: 기존 이미지의 표정 변경
+
+---
+
+## Anlas & 비용 절약 팁
+
+### Opus 구독자 무료 생성
+
+Opus 구독자는 **아래 조건을 모두 충족**하면 무료로 생성할 수 있습니다:
+- 해상도 ≤ Normal 사이즈 (예: 832×1216)
+- Steps ≤ 28
+- 1장 생성 (배치 사이즈 = 1)
+- SMEA 미사용 (Auto SMEA 제외)
+
+### Anlas 절약하기
+
+- 구도 확인은 낮은 스텝(5~10)으로, 마음에 드는 결과를 Enhance로 정제
+- 가능하면 무료 생성 범위 안에서 작업
+- 높은 스텝으로 재생성하기보다 Enhance 활용
 
 ---
 
@@ -457,6 +603,16 @@ nai generate \
 nai generate \
   --model nai-diffusion-4-5-full \
   --prompt "fur dataset, 1other, anthro fox, orange fur, blue eyes, adventurer outfit, leather armor, forest path, sunlight through trees, very aesthetic, masterpiece" \
+  --negative "lowres, worst quality, bad quality, very displeasing" \
+  --width 832 --height 1216 \
+  --steps 28 --scale 5
+```
+
+### 텍스트 포함 이미지 (V4.5)
+
+```bash
+nai generate \
+  --prompt "1girl, holding sign, smile, park, english text, very aesthetic, masterpiece, Text: Welcome!" \
   --negative "lowres, worst quality, bad quality, very displeasing" \
   --width 832 --height 1216 \
   --steps 28 --scale 5
@@ -541,7 +697,6 @@ nai generate --preset hq-portrait --prompt "test prompt" --dry-run
 - [nax.moe](https://nax.moe/) — NovelAI 태그 실험 갤러리. 개별 태그가 결과에 미치는 영향을 통제된 비교로 보여줌.
 - [Danbooru 태그 검색](https://danbooru.donmai.us/tags) — 정확한 태그명과 인기도 확인
 - [Reddit r/NovelAi](https://www.reddit.com/r/NovelAi/) — 커뮤니티 토론 및 가이드
-- [아카라이브 AI 그림 채널](https://arca.live/b/aiart) — 한국 커뮤니티 프롬프트 팁
 
 ### AI 에이전트용 빠른 참조
 
