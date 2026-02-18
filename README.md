@@ -1,14 +1,16 @@
 # nai-cli
 
-NovelAI 이미지 생성 CLI. 텍스트 프롬프트로 이미지 생성, img2img, 인페인팅, 업스케일, 태그 추천을 지원한다.
+📖 [한국어 문서](./README-ko.md)
 
-## 설치
+NovelAI image generation CLI. Supports text-to-image, img2img, inpainting, upscaling, and tag suggestion.
+
+## Installation
 
 ```bash
 npm install -g nai-cli
 ```
 
-또는 로컬 빌드:
+Or build from source:
 
 ```bash
 git clone https://github.com/demarlik01-ai/nai-cli-ts.git
@@ -17,22 +19,28 @@ npm install
 npm run build
 ```
 
-## 설정
+Requires Node.js >= 18.
 
-NovelAI API 토큰이 필요하다. [NovelAI](https://novelai.net) 구독 후 토큰을 발급받는다.
+## Configuration
+
+A NovelAI API token is required. Subscribe at [NovelAI](https://novelai.net) and obtain your token.
 
 ```bash
-# 토큰 설정
+# Set token
 nai config set-token <your-token>
 
-# 설정 확인
+# Show config (token is redacted)
 nai config show
 
-# 설정 검증
+# Validate config
 nai config validate
 ```
 
-설정 파일 위치: `~/.config/nai-cli/config.json`
+The token can also be set via the `NAI_API_TOKEN` environment variable (overrides the config file).
+
+### Config File
+
+Location: `~/.config/nai-cli/config.json` (respects `XDG_CONFIG_HOME`)
 
 ```json
 {
@@ -47,15 +55,33 @@ nai config validate
 }
 ```
 
-## 사용법
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `version` | `1` | `1` | Config schema version |
+| `apiToken` | string \| null | `null` | NovelAI bearer token |
+| `defaultModel` | string | `nai-diffusion-4-5-curated` | Default model ID |
+| `defaultSampler` | string | `k_euler_ancestral` | Default sampler ID |
+| `defaultOutputDir` | string | `./outputs` | Default output directory |
+| `requestTimeoutMs` | number | `60000` | Request timeout in ms |
+| `maxRetries` | number | `3` | Max retry count (0–10) |
+| `debug` | boolean | `false` | Enable debug logging |
 
-### 이미지 생성 (txt2img)
+## Global Options
+
+```
+--debug          Enable debug logging
+--config <path>  Path to config.json
+```
+
+## Commands
+
+### `generate` — Text-to-Image
+
+Generate image(s) from a text prompt.
 
 ```bash
-# 기본 생성
 nai generate --prompt "1girl, blue hair, school uniform, smile"
 
-# 옵션 지정
 nai generate \
   --prompt "1girl, blue hair, school uniform" \
   --negative "bad quality, low res" \
@@ -66,9 +92,22 @@ nai generate \
   --out ./my-images/
 ```
 
-### img2img
+| Option | Required | Default | Description |
+|--------|----------|---------|-------------|
+| `--prompt <text>` | ✅ | — | Prompt text |
+| `--negative <text>` | | — | Negative prompt |
+| `--model <id>` | | Config default | Model ID |
+| `--sampler <id>` | | Config default | Sampler ID |
+| `--width <number>` | | `1024` | Image width (multiple of 64) |
+| `--height <number>` | | `1024` | Image height (multiple of 64) |
+| `--steps <number>` | | `28` | Sampling steps (1–50) |
+| `--scale <number>` | | `5` | CFG scale |
+| `--seed <number>` | | Random | Seed (0–4294967295) |
+| `--out <dir>` | | Config default | Output directory |
 
-입력 이미지를 기반으로 변형 생성.
+### `img2img` — Image-to-Image
+
+Generate image(s) from an input image and prompt.
 
 ```bash
 nai img2img \
@@ -79,9 +118,25 @@ nai img2img \
   --out ./outputs/
 ```
 
-### 인페인팅
+| Option | Required | Default | Description |
+|--------|----------|---------|-------------|
+| `--image <path>` | ✅ | — | Input image path |
+| `--prompt <text>` | ✅ | — | Prompt text |
+| `--strength <number>` | ✅ | — | Transformation strength (0–1) |
+| `--noise <number>` | ✅ | — | Noise amount (0–1) |
+| `--negative <text>` | | — | Negative prompt |
+| `--model <id>` | | Config default | Model ID |
+| `--sampler <id>` | | Config default | Sampler ID |
+| `--width <number>` | | `1024` | Image width |
+| `--height <number>` | | `1024` | Image height |
+| `--steps <number>` | | `28` | Sampling steps |
+| `--scale <number>` | | `5` | CFG scale |
+| `--seed <number>` | | Random | Seed |
+| `--out <dir>` | | Config default | Output directory |
 
-마스크 영역을 다시 그린다.
+### `inpaint` — Inpainting
+
+Regenerate masked region of an image.
 
 ```bash
 nai inpaint \
@@ -92,61 +147,91 @@ nai inpaint \
   --out ./outputs/
 ```
 
-### 업스케일
+| Option | Required | Default | Description |
+|--------|----------|---------|-------------|
+| `--image <path>` | ✅ | — | Input image path |
+| `--mask <path>` | ✅ | — | Mask image path |
+| `--prompt <text>` | ✅ | — | Prompt text |
+| `--strength <number>` | ✅ | — | Inpainting strength (0–1) |
+| `--negative <text>` | | — | Negative prompt |
+| `--model <id>` | | Config default | Model ID |
+| `--sampler <id>` | | Config default | Sampler ID |
+| `--width <number>` | | `1024` | Image width |
+| `--height <number>` | | `1024` | Image height |
+| `--steps <number>` | | `28` | Sampling steps |
+| `--scale <number>` | | `5` | CFG scale |
+| `--seed <number>` | | Random | Seed |
+| `--out <dir>` | | Config default | Output directory |
 
-이미지 해상도를 높인다.
+### `upscale` — Image Upscaling
+
+Upscale an image.
 
 ```bash
-nai upscale \
-  --image input.png \
-  --scale 4 \
-  --out ./outputs/
+nai upscale --image input.png --scale 4 --out ./outputs/
 ```
 
-### 태그 추천
+| Option | Required | Default | Description |
+|--------|----------|---------|-------------|
+| `--image <path>` | ✅ | — | Input image path |
+| `--scale <number>` | | `4` | Upscale factor |
+| `--out <dir>` | | Config default | Output directory |
 
-프롬프트에 어울리는 태그를 추천받는다.
+### `suggest-tags` — Tag Suggestion
+
+Suggest prompt tags based on input text.
 
 ```bash
-# 기본 (JSON 출력)
+# JSON output (default)
 nai suggest-tags --prompt "1girl, blue hair"
 
-# 테이블 출력 + 일본어 태그
+# Table output with Japanese tags
 nai suggest-tags --prompt "1girl" --format table --lang jp
 ```
 
-## 지원 모델
+| Option | Required | Default | Description |
+|--------|----------|---------|-------------|
+| `--prompt <text>` | ✅ | — | Prompt text |
+| `--model <id>` | | Config default | Model ID |
+| `--lang <code>` | | — | Tag language (`en` or `jp`) |
+| `--format <type>` | | `json` | Output format (`json` or `table`) |
 
-| 모델 | ID |
-|------|-----|
+### `config` — Configuration Management
+
+```bash
+nai config set-token <token>   # Save API token
+nai config show                # Show config (token redacted)
+nai config validate            # Validate config file
+```
+
+## Supported Models
+
+| Model | ID |
+|-------|-----|
 | V4.5 Curated | `nai-diffusion-4-5-curated` |
 | V4.5 Full | `nai-diffusion-4-5-full` |
-| V4 Curated | `nai-diffusion-4-curated` |
 | V4 Full | `nai-diffusion-4-full` |
+| V4 Curated | `nai-diffusion-4-curated` |
 | V3 | `nai-diffusion-3` |
 | V3 Inpainting | `nai-diffusion-3-inpainting` |
 | Furry V3 | `nai-diffusion-furry-3` |
+| V2 | `nai-diffusion-2` |
+| V1 | `nai-diffusion` |
+| Safe Diffusion | `safe-diffusion` |
 
-V4/V4.5 모델은 자동으로 V4 프롬프트 구조(`v4_prompt`)를 사용한다.
+V4/V4.5 models automatically use the V4 prompt structure (`v4_prompt`).
 
-## 샘플러
+## Samplers
 
 `k_euler`, `k_euler_ancestral`, `k_dpmpp_2s_ancestral`, `k_dpmpp_2m`, `k_dpmpp_sde`, `ddim`
 
-## 출력
+## Output
 
-- 이미지: `<model>-seed-<seed>-img-<n>.png`
-- 메타데이터: `<model>-seed-<seed>-img-<n>.json`
+- Image: `<model>-seed-<seed>-img-<n>.png`
+- Metadata: `<model>-seed-<seed>-img-<n>.json`
 
-기본 출력 디렉토리는 `./outputs/` (config에서 변경 가능).
+Default output directory is `./outputs/` (configurable).
 
-## 글로벌 옵션
-
-```
---debug          디버그 로깅 활성화
---config <path>  설정 파일 경로 지정
-```
-
-## 라이선스
+## License
 
 MIT
