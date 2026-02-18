@@ -1,6 +1,6 @@
 # nai-cli
 
-📖 [한국어 문서](./README-ko.md)
+📖 [한국어 문서](./README-ko.md) | 📐 [Architecture](./docs/ARCHITECTURE.md) | 🎨 [Prompting Guide](./docs/PROMPTING-GUIDE.md)
 
 NovelAI image generation CLI. Supports text-to-image, img2img, inpainting, upscaling, and tag suggestion.
 

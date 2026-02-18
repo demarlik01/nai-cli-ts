@@ -1,6 +1,6 @@
 # nai-cli
 
-📖 [English](./README.md)
+📖 [English](./README.md) | 📐 [아키텍처](./docs/ARCHITECTURE-ko.md) | 🎨 [프롬프트 가이드](./docs/PROMPTING-GUIDE-ko.md)
 
 NovelAI 이미지 생성 CLI. 텍스트-이미지 생성, img2img, 인페인팅, 업스케일, 태그 추천을 지원한다.
 
